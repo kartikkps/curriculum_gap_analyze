@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Loader2, ArrowRight, BookOpen } from 'lucide-react';
+import { Loader2, ArrowRight, BookOpen, Hash } from 'lucide-react';
 import './CurriculumForm.css';
 
 const CurriculumForm = ({ onAnalyze, isLoading }) => {
   const [target, setTarget] = useState('');
   const [student, setStudent] = useState('');
+  const [seed, setSeed] = useState(42);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (target.trim() && student.trim()) {
-      onAnalyze(target, student);
+      onAnalyze(target, student, seed);
     }
   };
 
@@ -45,17 +46,30 @@ const CurriculumForm = ({ onAnalyze, isLoading }) => {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isLoading || !target.trim() || !student.trim()}
-          className={`analyze-btn ${isLoading ? 'loading' : ''}`}
-        >
-          {isLoading ? (
-            <><Loader2 className="spinner" size={18} /> Analyzing Gaps...</>
-          ) : (
-            <>Analyze Gaps <ArrowRight size={18} /></>
-          )}
-        </button>
+        <div className="run-controls">
+          <div className="seed-input-wrapper">
+             <label htmlFor="seed"><Hash size={14}/> Reproducibility Seed</label>
+             <input 
+                type="number" 
+                id="seed" 
+                value={seed} 
+                onChange={(e) => setSeed(Number(e.target.value))}
+                className="seed-input"
+             />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading || !target.trim() || !student.trim()}
+            className={`analyze-btn ${isLoading ? 'loading' : ''}`}
+          >
+            {isLoading ? (
+              <><Loader2 className="spinner" size={18} /> Analyzing Gaps...</>
+            ) : (
+              <>Analyze Gaps <ArrowRight size={18} /></>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );

@@ -4,21 +4,35 @@ import CurriculumForm from './components/CurriculumForm';
 import ResultsDashboard from './components/ResultsDashboard';
 import TopicList from './components/TopicList';
 import LearningPath from './components/LearningPath';
-import { analyzeCurriculums } from './services/api';
+import RunTranscript from './components/RunTranscript';
+import { analyzeCurriculums, getRunLogs } from './services/api';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [analysisResult, setAnalysisResult] = useState(null);
+  const [runLogs, setRunLogs] = useState([]);
 
-  const handleAnalyze = async (target, student) => {
+  const handleReset = () => {
+    setAnalysisResult(null);
+    setRunLogs([]);
+    setError(null);
+  };
+
+  const handleAnalyze = async (target, student, seed) => {
     setIsLoading(true);
     setError(null);
     setAnalysisResult(null);
+    setRunLogs([]);
 
     try {
-      const data = await analyzeCurriculums(target, student);
+      const data = await analyzeCurriculums(target, student, seed);
       setAnalysisResult(data);
+      
+      if (data.run_id) {
+        const logs = await getRunLogs(data.run_id);
+        setRunLogs(logs);
+      }
 
       setTimeout(() => setIsLoading(false), 800);
     } catch (err) {
@@ -48,13 +62,32 @@ function App() {
 
         {analysisResult && !isLoading && (
           <div style={{ marginTop: '3rem' }}>
-            <h2 className="animate-in pb-4">Analysis Report</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem' }}>
+              <h2 className="animate-in" style={{ margin: 0 }}>Analysis Report</h2>
+              <button 
+                onClick={handleReset}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                Start Over
+              </button>
+            </div>
+            
             <ResultsDashboard metrics={analysisResult.metrics} />
             <TopicList
               missingTopics={analysisResult.result?.missing_topics}
               weakTopics={analysisResult.result?.weak_topics}
             />
             <LearningPath path={analysisResult.result?.recommended_learning_order} />
+            
+            <RunTranscript logs={runLogs} />
           </div>
         )}
       </main>
